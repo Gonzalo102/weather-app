@@ -14,7 +14,7 @@ function App() {
 
   async function getWeatherInfo(cityName) {
     const response = await fetch(
-      `http://api.openweathermap.org/data/2.5/weather?q=${cityName}&APPID=15f348269fa615760b2f05b9dc5a97d8`
+      `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&APPID=15f348269fa615760b2f05b9dc5a97d8`
     );
     if (response.status === 404) {
       throw new Error("Not found");
