@@ -18,6 +18,7 @@
 .logo {
   width: 50px;
   height: 100%;
+  filter: invert(100%);
 }
 
 .header {
