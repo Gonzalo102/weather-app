@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./style/style.css";
 import "./style/reset.css";
 import logo from "./images/logo2.png";
@@ -11,6 +11,32 @@ function App() {
   const [city, setCity] = useState();
   const [cityInput, setCityInput] = useState("");
   const [celsius, setCelsius] = useState(true);
+  const [cities, setCities] = useState([]);
+  const [matchCities, setMatchCities] = useState([]);
+
+  const inputRef = useRef();
+
+  async function getCities() {
+    const endpoint =
+      "https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json";
+
+    const response = await fetch(endpoint);
+    const data = await response.json();
+    return data;
+  }
+
+  const loadCities = async () => {
+    const newCities = await getCities();
+    setCities(newCities);
+  };
+
+  function findMatches(wordToMatch, cities) {
+    return cities.filter((place) => {
+      // here we need to figure out if the city matches what was searched
+      const regex = new RegExp(wordToMatch, "gi");
+      return place.city.match(regex);
+    });
+  }
 
   async function getWeatherInfo(cityName) {
     const response = await fetch(
@@ -31,12 +57,20 @@ function App() {
   };
 
   const handleChange = (e) => {
+    const matchArray = findMatches(inputRef.current.value, cities);
+    if (inputRef.current.value === "") {
+      setMatchCities([]);
+    } else {
+      setMatchCities(matchArray);
+    }
     setCityInput(e.target.value);
   };
 
   const changeCity = (e) => {
     e.preventDefault();
     loadWeather(cityInput);
+    inputRef.current.value = "";
+    setMatchCities([]);
   };
 
   const changeUnit = () => {
@@ -45,6 +79,10 @@ function App() {
 
   useEffect(() => {
     loadWeather("London");
+  }, []);
+
+  useEffect(() => {
+    loadCities();
   }, []);
 
   if (!city) return null;
@@ -65,6 +103,8 @@ function App() {
             type="text"
             defaultValue=""
             onChange={handleChange}
+            onKeyUp={handleChange}
+            ref={inputRef}
           />
           <button type="submit"> Search </button>
         </form>
@@ -98,6 +138,20 @@ function App() {
               ? kelvinToCelsius(city.main.temp_min)
               : kelvinToFahrenheit(city.main.temp_min)}
           </h4>
+        </div>
+        <div className="suggestion-wrapper">
+          <h1>
+            {matchCities.length > 0 &&
+              "Cities that match your search in the US"}
+          </h1>
+          <ul className="suggestions">
+            {matchCities.length > 0 &&
+              matchCities?.map((place, index) => {
+                if (index < 6) {
+                  return <li key={index}>{place.city}</li>;
+                }
+              })}
+          </ul>
         </div>
       </section>
       <section className="info-section">
